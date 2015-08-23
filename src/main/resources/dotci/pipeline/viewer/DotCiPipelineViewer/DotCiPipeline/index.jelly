@@ -28,12 +28,7 @@
                 resURL= '${resURL}/plugin/DotCi/'
                 DEVELOPMENT_MODE = '${developmentMode}'
             </script>
-            <j:if test='${developmentMode}'>
-                <script src="http://localhost:3000/assets/dotciPipelineViewer.js"/>
-            </j:if>
-            <j:if test='${!developmentMode}'>
-                <script src="${resURL}/plugin/DotCiDashboard/js/dotciPipelineViewer.js"/>
-            </j:if>
+                <script src="${resURL}/plugin/DotCiPipelineViewer/js/app.js"/>
         </head>
         <body class="fullbleed">
             <div class="mdl-layout mdl mdl-layout--fixed-header">
