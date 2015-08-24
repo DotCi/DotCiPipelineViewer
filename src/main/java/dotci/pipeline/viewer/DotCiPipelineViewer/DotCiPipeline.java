@@ -1,22 +1,23 @@
 package dotci.pipeline.viewer.DotCiPipelineViewer;
 
-import hudson.*;
-import hudson.model.*;
+import org.kohsuke.stapler.export.*;
 
-@Extension
-public class DotCiPipeline implements RootAction {
-    @Override
-    public String getIconFileName() {
-        return null;
+import java.util.*;
+
+@ExportedBean
+public class DotCiPipeline {
+
+    @Exported
+    public List<DotCiPipelineSha> getShas() {
+        return shas;
     }
 
-    @Override
-    public String getDisplayName() {
-        return "DotCi Pipeline Viewer";
-    }
-
-    @Override
-    public String getUrlName() {
-        return "dotciPipeline";
+    List<DotCiPipelineSha> shas;
+    public DotCiPipeline(){
+        ArrayList<DotCiStep> steps = new ArrayList<DotCiStep>();
+        steps.add(new DotCiStep("step1"));
+        DotCiPipelineSha pipleline = new DotCiPipelineSha("sha", steps);
+        this.shas = new ArrayList<DotCiPipelineSha>();
+        shas.add(pipleline);
     }
 }

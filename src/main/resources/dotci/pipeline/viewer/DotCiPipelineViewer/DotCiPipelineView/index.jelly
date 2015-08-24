@@ -27,6 +27,7 @@
                 rootURL = '${rootURL}'
                 resURL= '${resURL}/plugin/DotCi/'
                 DEVELOPMENT_MODE = '${developmentMode}'
+                repo = '${request.getParameter('repo')}'
             </script>
                 <script src="${resURL}/plugin/DotCiPipelineViewer/js/app.js"/>
         </head>
@@ -47,7 +48,6 @@
                 <main class="mdl-layout__content">
                     <div class="page-content">
                         <div id="main"/>
-
                     </div>
                 </main>
             </div>
