@@ -10,9 +10,21 @@ view pipeLineResult =
 pipeLineShaView pipelineSha = 
   div [class "fieldset"]
       [h1 []
-           [span [] [text pipelineSha.sha]],
-       div [class "builds"]
+           [span [] [ commitLink pipelineSha.commit]],
+       div []
             ( List.map(\buildStep -> buildStepView buildStep) pipelineSha.steps)
        ]
 buildStepView buildStep = 
-    text "blah"
+  div [class "fieldset"]
+      [h1 []
+           [span [] [text buildStep.name]],
+       div []
+            (buildStep.builds |> List.map(\build-> buildView build))
+       ]
+buildView build = 
+   text (toString build.number)
+
+commitLink commit  =
+   a [ href commit.commitUrl] [ text (commit.message ++ " ( " ++ commit.shortSha ++  ")")]
+
+

@@ -16,8 +16,9 @@ port retrivePipelinePort =
   |> (\task -> Task.toResult(task) `andThen` Signal.send pipeLineMailBox.address)
 
 --Models
+type alias PipelineSha = {sha: String, steps: List PipelineStep, commit: Commit}
+type alias Commit = {avatarUrl: String, branch: String, commitUrl: String, committerName: String, message: String, shortSha: String}
 type alias PipelineStep = { name: String, builds: List Build }
-type alias PipelineSha = {sha: String, steps: List PipelineStep}
 type alias Build = {number: Int}
 
 --Mailbox
@@ -31,12 +32,20 @@ retrivePipeline: Task Http.Error (List PipelineSha)
 retrivePipeline = 
   let 
       buildDecoder = Json.object1 Build ("number" := Json.int)
-      pipelineStep = Json.object2 PipelineStep  ("name" := Json.string)  ("builds" := Json.list buildDecoder)
-      pipelineSha = 
-        Json.object2 PipelineSha
+      pipelineStepDecoder = Json.object2 PipelineStep  ("name" := Json.string)  ("builds" := Json.list buildDecoder)
+      commitDecoder= Json.object6 Commit 
+                         ("avatarUrl" := Json.string) 
+                         ("branch" := Json.string) 
+                         ("commitUrl" := Json.string) 
+                         ("committerName" := Json.string) 
+                         ("message" := Json.string) 
+                         ("shortSha" := Json.string) 
+      pipelineShaDecoder = 
+        Json.object3 PipelineSha
           ("sha" := Json.string)
-          ("steps" := Json.list pipelineStep)
+          ("steps" := Json.list pipelineStepDecoder)
+          ("commit" := commitDecoder)
 
-      pipelineDecoder = ("shas" := Json.list pipelineSha)
+      pipelineDecoder = ("shas" := Json.list pipelineShaDecoder)
   in 
-      Http.get pipelineDecoder ("/jenkins/dotciPipeline/api/?tree=*,shas[*,steps[*,builds[*]]]&repo="++repo)
+      Http.get pipelineDecoder ("/jenkins/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo="++repo)

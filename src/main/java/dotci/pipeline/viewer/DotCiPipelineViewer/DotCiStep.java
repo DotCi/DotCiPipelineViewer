@@ -2,6 +2,7 @@ package dotci.pipeline.viewer.DotCiPipelineViewer;
 
 import com.groupon.jenkins.dynamic.build.*;
 import com.groupon.jenkins.dynamic.build.api.*;
+import com.groupon.jenkins.dynamic.build.cause.*;
 import org.kohsuke.stapler.export.*;
 
 import java.util.*;
@@ -27,5 +28,6 @@ public class DotCiStep {
      public ArrayList<ProcessedBuild> getBuilds() {
           return builds;
      }
+
      private String name;
 }

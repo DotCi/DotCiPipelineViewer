@@ -85,17 +85,33 @@
 	   var Build = function (a) {
 	      return {_: {},number: a};
 	   };
-	   var PipelineSha = F2(function (a,
-	   b) {
-	      return {_: {}
-	             ,sha: a
-	             ,steps: b};
-	   });
 	   var PipelineStep = F2(function (a,
 	   b) {
 	      return {_: {}
 	             ,builds: b
 	             ,name: a};
+	   });
+	   var Commit = F6(function (a,
+	   b,
+	   c,
+	   d,
+	   e,
+	   f) {
+	      return {_: {}
+	             ,avatarUrl: a
+	             ,branch: b
+	             ,commitUrl: c
+	             ,committerName: d
+	             ,message: e
+	             ,shortSha: f};
+	   });
+	   var PipelineSha = F3(function (a,
+	   b,
+	   c) {
+	      return {_: {}
+	             ,commit: c
+	             ,sha: a
+	             ,steps: b};
 	   });
 	   var repo = Elm.Native.Port.make(_elm).inbound("repo",
 	   "String",
@@ -104,12 +120,32 @@
 	      v);
 	   });
 	   var retrivePipeline = function () {
+	      var commitDecoder = A7($Json$Decode.object6,
+	      Commit,
+	      A2($Json$Decode._op[":="],
+	      "avatarUrl",
+	      $Json$Decode.string),
+	      A2($Json$Decode._op[":="],
+	      "branch",
+	      $Json$Decode.string),
+	      A2($Json$Decode._op[":="],
+	      "commitUrl",
+	      $Json$Decode.string),
+	      A2($Json$Decode._op[":="],
+	      "committerName",
+	      $Json$Decode.string),
+	      A2($Json$Decode._op[":="],
+	      "message",
+	      $Json$Decode.string),
+	      A2($Json$Decode._op[":="],
+	      "shortSha",
+	      $Json$Decode.string));
 	      var buildDecoder = A2($Json$Decode.object1,
 	      Build,
 	      A2($Json$Decode._op[":="],
 	      "number",
 	      $Json$Decode.$int));
-	      var pipelineStep = A3($Json$Decode.object2,
+	      var pipelineStepDecoder = A3($Json$Decode.object2,
 	      PipelineStep,
 	      A2($Json$Decode._op[":="],
 	      "name",
@@ -117,21 +153,24 @@
 	      A2($Json$Decode._op[":="],
 	      "builds",
 	      $Json$Decode.list(buildDecoder)));
-	      var pipelineSha = A3($Json$Decode.object2,
+	      var pipelineShaDecoder = A4($Json$Decode.object3,
 	      PipelineSha,
 	      A2($Json$Decode._op[":="],
 	      "sha",
 	      $Json$Decode.string),
 	      A2($Json$Decode._op[":="],
 	      "steps",
-	      $Json$Decode.list(pipelineStep)));
+	      $Json$Decode.list(pipelineStepDecoder)),
+	      A2($Json$Decode._op[":="],
+	      "commit",
+	      commitDecoder));
 	      var pipelineDecoder = A2($Json$Decode._op[":="],
 	      "shas",
-	      $Json$Decode.list(pipelineSha));
+	      $Json$Decode.list(pipelineShaDecoder));
 	      return A2($Http.get,
 	      pipelineDecoder,
 	      A2($Basics._op["++"],
-	      "/jenkins/dotciPipeline/api/?tree=*,shas[*,steps[*,builds[*]]]&repo=",
+	      "/jenkins/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo=",
 	      repo));
 	   }();
 	   var retrivePipelinePort = Elm.Native.Task.make(_elm).perform(function (task) {
@@ -144,8 +183,9 @@
 	   pipeLineMailBox.signal);
 	   _elm.App.values = {_op: _op
 	                     ,main: main
-	                     ,PipelineStep: PipelineStep
 	                     ,PipelineSha: PipelineSha
+	                     ,Commit: Commit
+	                     ,PipelineStep: PipelineStep
 	                     ,Build: Build
 	                     ,pipeLineMailBox: pipeLineMailBox
 	                     ,retrivePipeline: retrivePipeline};
@@ -13398,12 +13438,38 @@
 	   _U = _N.Utils.make(_elm),
 	   _L = _N.List.make(_elm),
 	   $moduleName = "View",
+	   $Basics = Elm.Basics.make(_elm),
 	   $Html = Elm.Html.make(_elm),
 	   $Html$Attributes = Elm.Html.Attributes.make(_elm),
 	   $List = Elm.List.make(_elm),
 	   $Result = Elm.Result.make(_elm);
+	   var commitLink = function (commit) {
+	      return A2($Html.a,
+	      _L.fromArray([$Html$Attributes.href(commit.commitUrl)]),
+	      _L.fromArray([$Html.text(A2($Basics._op["++"],
+	      commit.message,
+	      A2($Basics._op["++"],
+	      " ( ",
+	      A2($Basics._op["++"],
+	      commit.shortSha,
+	      ")"))))]));
+	   };
+	   var buildView = function (build) {
+	      return $Html.text($Basics.toString(build.number));
+	   };
 	   var buildStepView = function (buildStep) {
-	      return $Html.text("blah");
+	      return A2($Html.div,
+	      _L.fromArray([$Html$Attributes.$class("fieldset")]),
+	      _L.fromArray([A2($Html.h1,
+	                   _L.fromArray([]),
+	                   _L.fromArray([A2($Html.span,
+	                   _L.fromArray([]),
+	                   _L.fromArray([$Html.text(buildStep.name)]))]))
+	                   ,A2($Html.div,
+	                   _L.fromArray([]),
+	                   $List.map(function (build) {
+	                      return buildView(build);
+	                   })(buildStep.builds))]));
 	   };
 	   var pipeLineShaView = function (pipelineSha) {
 	      return A2($Html.div,
@@ -13412,9 +13478,9 @@
 	                   _L.fromArray([]),
 	                   _L.fromArray([A2($Html.span,
 	                   _L.fromArray([]),
-	                   _L.fromArray([$Html.text(pipelineSha.sha)]))]))
+	                   _L.fromArray([commitLink(pipelineSha.commit)]))]))
 	                   ,A2($Html.div,
-	                   _L.fromArray([$Html$Attributes.$class("builds")]),
+	                   _L.fromArray([]),
 	                   A2($List.map,
 	                   function (buildStep) {
 	                      return buildStepView(buildStep);
