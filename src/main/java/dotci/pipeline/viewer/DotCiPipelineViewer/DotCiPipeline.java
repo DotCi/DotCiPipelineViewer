@@ -13,11 +13,7 @@ public class DotCiPipeline {
     }
 
     List<DotCiPipelineSha> shas;
-    public DotCiPipeline(){
-        ArrayList<DotCiStep> steps = new ArrayList<DotCiStep>();
-        steps.add(new DotCiStep("step1"));
-        DotCiPipelineSha pipleline = new DotCiPipelineSha("sha", steps);
-        this.shas = new ArrayList<DotCiPipelineSha>();
-        shas.add(pipleline);
+    public DotCiPipeline(List<DotCiPipelineSha> shas){
+        this.shas = shas;
     }
 }
