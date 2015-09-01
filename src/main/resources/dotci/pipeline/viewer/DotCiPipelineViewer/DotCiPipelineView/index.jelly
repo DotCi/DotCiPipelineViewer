@@ -29,7 +29,12 @@
                 DEVELOPMENT_MODE = '${developmentMode}'
                 repo = '${request.getParameter('repo')}'
             </script>
+            <j:if test='${developmentMode}'>
+                <script src="http://localhost:3000/src/main/webapp/js/app.js"/>
+            </j:if>
+            <j:if test='${!developmentMode}'>
                 <script src="${resURL}/plugin/DotCiPipelineViewer/js/app.js"/>
+            </j:if>
         </head>
         <body class="fullbleed">
             <div class="mdl-layout mdl mdl-layout--fixed-header">

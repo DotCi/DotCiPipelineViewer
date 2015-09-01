@@ -1,23 +1,12 @@
 module App where 
-import Html exposing (..)
 import Json.Decode as Json exposing((:=))
 import Http
 import Signal exposing (..)
+import View exposing (view)
 import Task exposing (..)
 
 main = 
   Signal.map view  pipeLineMailBox.signal
-
---View 
-view pipeLineResult = 
-    case  pipeLineResult of 
-      Err _ ->  h1 [] [text "error"]
-      Ok pipeLine ->  h1 [] 
-                 ( List.map(\pipeLineSha -> text pipeLineSha.sha) pipeLine)
-
-
-
-
 --Ports
 port repo: String
 
@@ -27,20 +16,22 @@ port retrivePipelinePort =
   |> (\task -> Task.toResult(task) `andThen` Signal.send pipeLineMailBox.address)
 
 --Models
-type alias PipelineStep = { name: String }
+type alias PipelineStep = { name: String, builds: List Build }
 type alias PipelineSha = {sha: String, steps: List PipelineStep}
+type alias Build = {number: Int}
 
 --Mailbox
 
 pipeLineMailBox: Mailbox (Result Http.Error  (List PipelineSha))
 pipeLineMailBox = 
-   Signal.mailbox  (Ok [])
+     Signal.mailbox  (Ok [])
 
 --Api
 retrivePipeline: Task Http.Error (List PipelineSha)
 retrivePipeline = 
   let 
-      pipelineStep = Json.object1 PipelineStep  ("name" := Json.string)
+      buildDecoder = Json.object1 Build ("number" := Json.int)
+      pipelineStep = Json.object2 PipelineStep  ("name" := Json.string)  ("builds" := Json.list buildDecoder)
       pipelineSha = 
         Json.object2 PipelineSha
           ("sha" := Json.string)
@@ -48,4 +39,4 @@ retrivePipeline =
 
       pipelineDecoder = ("shas" := Json.list pipelineSha)
   in 
-      Http.get pipelineDecoder "/jenkins/dotciPipeline/api/?tree=*,shas[*,steps[*]]" 
+      Http.get pipelineDecoder ("/jenkins/dotciPipeline/api/?tree=*,shas[*,steps[*,builds[*]]]&repo="++repo)
