@@ -1,6 +1,7 @@
 module App where 
 import Json.Decode as Json exposing((:=))
 import Http
+import Time
 import Signal exposing (..)
 import View exposing (view)
 import Task exposing (..)
@@ -11,10 +12,11 @@ main =
 port repo: String
 port rootURL: String
 
-port retrivePipelinePort: Task Http.Error ()
+port retrivePipelinePort: Signal( Task Http.Error ())
 port retrivePipelinePort =  
-  retrivePipeline
-  |> (\task -> Task.toResult(task) `andThen` Signal.send pipeLineMailBox.address)
+  Signal.map (\x -> (retrivePipeline x)
+  |> (\task -> Task.toResult(task) `andThen` Signal.send pipeLineMailBox.address))
+  (Time.every 10000)
 
 --Models
 type alias PipelineSha = {sha: String, steps: List PipelineStep, commit: Commit}
@@ -29,8 +31,8 @@ pipeLineMailBox =
      Signal.mailbox  (Ok [])
 
 --Api
-retrivePipeline: Task Http.Error (List PipelineSha)
-retrivePipeline = 
+retrivePipeline: Time.Time ->  Task Http.Error (List PipelineSha)
+retrivePipeline x = 
   let 
       buildDecoder = Json.object4 Build 
                                 ("number" := Json.int)

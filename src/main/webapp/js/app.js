@@ -80,6 +80,7 @@
 	   $Result = Elm.Result.make(_elm),
 	   $Signal = Elm.Signal.make(_elm),
 	   $Task = Elm.Task.make(_elm),
+	   $Time = Elm.Time.make(_elm),
 	   $View = Elm.View.make(_elm);
 	   var pipeLineMailBox = $Signal.mailbox($Result.Ok(_L.fromArray([])));
 	   var Build = F4(function (a,
@@ -132,74 +133,81 @@
 	      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
 	      v);
 	   });
-	   var retrivePipeline = function () {
-	      var commitDecoder = A7($Json$Decode.object6,
-	      Commit,
-	      A2($Json$Decode._op[":="],
-	      "avatarUrl",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "branch",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "commitUrl",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "committerName",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "message",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "shortSha",
-	      $Json$Decode.string));
-	      var buildDecoder = A5($Json$Decode.object4,
-	      Build,
-	      A2($Json$Decode._op[":="],
-	      "number",
-	      $Json$Decode.$int),
-	      A2($Json$Decode._op[":="],
-	      "cancelUrl",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "displayTime",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "result",
-	      $Json$Decode.string));
-	      var pipelineStepDecoder = A3($Json$Decode.object2,
-	      PipelineStep,
-	      A2($Json$Decode._op[":="],
-	      "name",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "builds",
-	      $Json$Decode.list(buildDecoder)));
-	      var pipelineShaDecoder = A4($Json$Decode.object3,
-	      PipelineSha,
-	      A2($Json$Decode._op[":="],
-	      "sha",
-	      $Json$Decode.string),
-	      A2($Json$Decode._op[":="],
-	      "steps",
-	      $Json$Decode.list(pipelineStepDecoder)),
-	      A2($Json$Decode._op[":="],
-	      "commit",
-	      commitDecoder));
-	      var pipelineDecoder = A2($Json$Decode._op[":="],
-	      "shas",
-	      $Json$Decode.list(pipelineShaDecoder));
-	      return A2($Http.get,
-	      pipelineDecoder,
-	      A2($Basics._op["++"],
-	      "/jenkins/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo=",
-	      repo));
-	   }();
-	   var retrivePipelinePort = Elm.Native.Task.make(_elm).perform(function (task) {
-	      return A2($Task.andThen,
-	      $Task.toResult(task),
-	      $Signal.send(pipeLineMailBox.address));
-	   }(retrivePipeline));
+	   var retrivePipeline = function (x) {
+	      return function () {
+	         var commitDecoder = A7($Json$Decode.object6,
+	         Commit,
+	         A2($Json$Decode._op[":="],
+	         "avatarUrl",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "branch",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "commitUrl",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "committerName",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "message",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "shortSha",
+	         $Json$Decode.string));
+	         var buildDecoder = A5($Json$Decode.object4,
+	         Build,
+	         A2($Json$Decode._op[":="],
+	         "number",
+	         $Json$Decode.$int),
+	         A2($Json$Decode._op[":="],
+	         "cancelUrl",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "displayTime",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "result",
+	         $Json$Decode.string));
+	         var pipelineStepDecoder = A3($Json$Decode.object2,
+	         PipelineStep,
+	         A2($Json$Decode._op[":="],
+	         "name",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "builds",
+	         $Json$Decode.list(buildDecoder)));
+	         var pipelineShaDecoder = A4($Json$Decode.object3,
+	         PipelineSha,
+	         A2($Json$Decode._op[":="],
+	         "sha",
+	         $Json$Decode.string),
+	         A2($Json$Decode._op[":="],
+	         "steps",
+	         $Json$Decode.list(pipelineStepDecoder)),
+	         A2($Json$Decode._op[":="],
+	         "commit",
+	         commitDecoder));
+	         var pipelineDecoder = A2($Json$Decode._op[":="],
+	         "shas",
+	         $Json$Decode.list(pipelineShaDecoder));
+	         return A2($Http.get,
+	         pipelineDecoder,
+	         A2($Basics._op["++"],
+	         "/jenkins/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo=",
+	         repo));
+	      }();
+	   };
+	   var retrivePipelinePort = Elm.Native.Task.make(_elm).performSignal("retrivePipelinePort",
+	   A2($Signal.map,
+	   function (x) {
+	      return function (task) {
+	         return A2($Task.andThen,
+	         $Task.toResult(task),
+	         $Signal.send(pipeLineMailBox.address));
+	      }(retrivePipeline(x));
+	   },
+	   $Time.every(10000)));
 	   var main = A2($Signal.map,
 	   $View.view(rootURL),
 	   pipeLineMailBox.signal);
