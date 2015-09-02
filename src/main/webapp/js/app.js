@@ -44,22 +44,30 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	__webpack_require__(1);
+	module.exports = __webpack_require__(1);
+
+
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	var _AppElm = __webpack_require__(1);
+	var _AppElm = __webpack_require__(2);
 
 	var _AppElm2 = _interopRequireDefault(_AppElm);
 
-	__webpack_require__(2);
+	__webpack_require__(3);
 
 	window.onload = function () {
 	  _AppElm2['default'].embed(_AppElm2['default'].App, document.getElementById('main'), { repo: window.repo, rootURL: window.rootURL });
 	};
 
 /***/ },
-/* 1 */
+/* 2 */
 /***/ function(module, exports) {
 
 	var Elm = Elm || { Native: {} };
@@ -13825,16 +13833,16 @@
 	module.exports = Elm;
 
 /***/ },
-/* 2 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(3);
+	var content = __webpack_require__(4);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(5)(content, {});
+	var update = __webpack_require__(6)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -13851,10 +13859,10 @@
 	}
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(4)();
+	exports = module.exports = __webpack_require__(5)();
 	// imports
 
 
@@ -13865,7 +13873,7 @@
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	/*
@@ -13921,7 +13929,7 @@
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
