@@ -202,8 +202,10 @@
 	         return A2($Http.get,
 	         pipelineDecoder,
 	         A2($Basics._op["++"],
-	         "/jenkins/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo=",
-	         repo));
+	         rootURL,
+	         A2($Basics._op["++"],
+	         "/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo=",
+	         repo)));
 	      }();
 	   };
 	   var retrivePipelinePort = Elm.Native.Task.make(_elm).performSignal("retrivePipelinePort",

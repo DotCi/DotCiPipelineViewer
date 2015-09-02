@@ -57,4 +57,4 @@ retrivePipeline x =
 
       pipelineDecoder = ("shas" := Json.list pipelineShaDecoder)
   in 
-      Http.get pipelineDecoder ("/jenkins/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo="++repo)
+      Http.get pipelineDecoder (rootURL ++ "/dotciPipeline/api/?tree=*,shas[*,commit[*],steps[*,builds[*]]]&repo="++repo)
