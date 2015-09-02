@@ -22,7 +22,7 @@ public class DotCiPipelineSha {
         ImmutableListMultimap<String, DynamicBuild> byStep = Multimaps.index(dynamicBuilds, new Function<DynamicBuild, String>() {
             public String apply(DynamicBuild dynamicBuild) {
                 ParametersAction paramAction = dynamicBuild.getAction(ParametersAction.class);
-                return (String) paramAction.getParameter("DOTCI_STEP").getValue();
+                return paramAction.getParameter ("DOTCI_STEP") == null ? dynamicBuild.getSha():(String) paramAction.getParameter("DOTCI_STEP").getValue();
             }
         });
 
