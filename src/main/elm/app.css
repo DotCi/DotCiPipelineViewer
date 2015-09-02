@@ -29,3 +29,16 @@
   position: relative;
   top: 0.5em;
 }
+.FAILURE{
+  color: red;
+}
+
+.SUCCESS{
+  color: green;
+}
+.IN_PROGRESS{
+  color: yellow;
+}
+.ABORTED{
+  color: grey;
+}

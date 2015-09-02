@@ -6,9 +6,10 @@ import View exposing (view)
 import Task exposing (..)
 
 main = 
-  Signal.map view  pipeLineMailBox.signal
+  Signal.map (view rootURL)  pipeLineMailBox.signal
 --Ports
 port repo: String
+port rootURL: String
 
 port retrivePipelinePort: Task Http.Error ()
 port retrivePipelinePort =  
@@ -19,7 +20,7 @@ port retrivePipelinePort =
 type alias PipelineSha = {sha: String, steps: List PipelineStep, commit: Commit}
 type alias Commit = {avatarUrl: String, branch: String, commitUrl: String, committerName: String, message: String, shortSha: String}
 type alias PipelineStep = { name: String, builds: List Build }
-type alias Build = {number: Int}
+type alias Build = {number: Int, cancelUrl: String,displayTime: String, result: String}
 
 --Mailbox
 
@@ -31,8 +32,14 @@ pipeLineMailBox =
 retrivePipeline: Task Http.Error (List PipelineSha)
 retrivePipeline = 
   let 
-      buildDecoder = Json.object1 Build ("number" := Json.int)
-      pipelineStepDecoder = Json.object2 PipelineStep  ("name" := Json.string)  ("builds" := Json.list buildDecoder)
+      buildDecoder = Json.object4 Build 
+                                ("number" := Json.int)
+                                ("cancelUrl" := Json.string)
+                                ("displayTime" := Json.string)
+                                ("result" := Json.string)
+      pipelineStepDecoder = Json.object2 PipelineStep  
+                                        ("name" := Json.string)
+                                        ("builds" := Json.list buildDecoder)
       commitDecoder= Json.object6 Commit 
                          ("avatarUrl" := Json.string) 
                          ("branch" := Json.string) 

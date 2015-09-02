@@ -55,7 +55,7 @@
 	__webpack_require__(2);
 
 	window.onload = function () {
-	  _AppElm2['default'].embed(_AppElm2['default'].App, document.getElementById('main'), { repo: window.repo });
+	  _AppElm2['default'].embed(_AppElm2['default'].App, document.getElementById('main'), { repo: window.repo, rootURL: window.rootURL });
 	};
 
 /***/ },
@@ -82,9 +82,16 @@
 	   $Task = Elm.Task.make(_elm),
 	   $View = Elm.View.make(_elm);
 	   var pipeLineMailBox = $Signal.mailbox($Result.Ok(_L.fromArray([])));
-	   var Build = function (a) {
-	      return {_: {},number: a};
-	   };
+	   var Build = F4(function (a,
+	   b,
+	   c,
+	   d) {
+	      return {_: {}
+	             ,cancelUrl: b
+	             ,displayTime: c
+	             ,number: a
+	             ,result: d};
+	   });
 	   var PipelineStep = F2(function (a,
 	   b) {
 	      return {_: {}
@@ -113,6 +120,12 @@
 	             ,sha: a
 	             ,steps: b};
 	   });
+	   var rootURL = Elm.Native.Port.make(_elm).inbound("rootURL",
+	   "String",
+	   function (v) {
+	      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
+	      v);
+	   });
 	   var repo = Elm.Native.Port.make(_elm).inbound("repo",
 	   "String",
 	   function (v) {
@@ -140,11 +153,20 @@
 	      A2($Json$Decode._op[":="],
 	      "shortSha",
 	      $Json$Decode.string));
-	      var buildDecoder = A2($Json$Decode.object1,
+	      var buildDecoder = A5($Json$Decode.object4,
 	      Build,
 	      A2($Json$Decode._op[":="],
 	      "number",
-	      $Json$Decode.$int));
+	      $Json$Decode.$int),
+	      A2($Json$Decode._op[":="],
+	      "cancelUrl",
+	      $Json$Decode.string),
+	      A2($Json$Decode._op[":="],
+	      "displayTime",
+	      $Json$Decode.string),
+	      A2($Json$Decode._op[":="],
+	      "result",
+	      $Json$Decode.string));
 	      var pipelineStepDecoder = A3($Json$Decode.object2,
 	      PipelineStep,
 	      A2($Json$Decode._op[":="],
@@ -179,7 +201,7 @@
 	      $Signal.send(pipeLineMailBox.address));
 	   }(retrivePipeline));
 	   var main = A2($Signal.map,
-	   $View.view,
+	   $View.view(rootURL),
 	   pipeLineMailBox.signal);
 	   _elm.App.values = {_op: _op
 	                     ,main: main
@@ -8237,6 +8259,137 @@
 		};
 	};
 
+	Elm.Native.Regex = {};
+	Elm.Native.Regex.make = function(localRuntime) {
+		localRuntime.Native = localRuntime.Native || {};
+		localRuntime.Native.Regex = localRuntime.Native.Regex || {};
+		if (localRuntime.Native.Regex.values)
+		{
+			return localRuntime.Native.Regex.values;
+		}
+		if ('values' in Elm.Native.Regex)
+		{
+			return localRuntime.Native.Regex.values = Elm.Native.Regex.values;
+		}
+
+		var List = Elm.Native.List.make(localRuntime);
+		var Maybe = Elm.Maybe.make(localRuntime);
+
+		function escape(str)
+		{
+			return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+		}
+		function caseInsensitive(re)
+		{
+			return new RegExp(re.source, 'gi');
+		}
+		function regex(raw)
+		{
+			return new RegExp(raw, 'g');
+		}
+
+		function contains(re, string)
+		{
+			return string.match(re) !== null;
+		}
+
+		function find(n, re, str)
+		{
+			n = n.ctor === "All" ? Infinity : n._0;
+			var out = [];
+			var number = 0;
+			var string = str;
+			var lastIndex = re.lastIndex;
+			var prevLastIndex = -1;
+			var result;
+			while (number++ < n && (result = re.exec(string)))
+			{
+				if (prevLastIndex === re.lastIndex) break;
+				var i = result.length - 1;
+				var subs = new Array(i);
+				while (i > 0)
+				{
+					var submatch = result[i];
+					subs[--i] = submatch === undefined
+						? Maybe.Nothing
+						: Maybe.Just(submatch);
+				}
+				out.push({
+					_:{},
+					match: result[0],
+					submatches: List.fromArray(subs),
+					index: result.index,
+					number: number
+				});
+				prevLastIndex = re.lastIndex;
+			}
+			re.lastIndex = lastIndex;
+			return List.fromArray(out);
+		}
+
+		function replace(n, re, replacer, string)
+		{
+			n = n.ctor === "All" ? Infinity : n._0;
+			var count = 0;
+			function jsReplacer(match)
+			{
+				if (count++ > n)
+				{
+					return match;
+				}
+				var i = arguments.length-3;
+				var submatches = new Array(i);
+				while (i > 0)
+				{
+					var submatch = arguments[i];
+					submatches[--i] = submatch === undefined
+						? Maybe.Nothing
+						: Maybe.Just(submatch);
+				}
+				return replacer({
+					_:{},
+					match:match,
+					submatches:List.fromArray(submatches),
+					index:arguments[i-1],
+					number:count
+				});
+			}
+			return string.replace(re, jsReplacer);
+		}
+
+		function split(n, re, str)
+		{
+			n = n.ctor === "All" ? Infinity : n._0;
+			if (n === Infinity)
+			{
+				return List.fromArray(str.split(re));
+			}
+			var string = str;
+			var result;
+			var out = [];
+			var start = re.lastIndex;
+			while (n--)
+			{
+				if (!(result = re.exec(string))) break;
+				out.push(string.slice(start, result.index));
+				start = re.lastIndex;
+			}
+			out.push(string.slice(start));
+			return List.fromArray(out);
+		}
+
+		return Elm.Native.Regex.values = {
+			regex: regex,
+			caseInsensitive: caseInsensitive,
+			escape: escape,
+
+			contains: F2(contains),
+			find: F3(find),
+			replace: F4(replace),
+			split: F3(split)
+		};
+	};
+
 
 	if (!Elm.fullscreen) {
 
@@ -12483,6 +12636,55 @@
 
 	/***/ }
 	/******/ ]);
+	Elm.Regex = Elm.Regex || {};
+	Elm.Regex.make = function (_elm) {
+	   "use strict";
+	   _elm.Regex = _elm.Regex || {};
+	   if (_elm.Regex.values)
+	   return _elm.Regex.values;
+	   var _op = {},
+	   _N = Elm.Native,
+	   _U = _N.Utils.make(_elm),
+	   _L = _N.List.make(_elm),
+	   $moduleName = "Regex",
+	   $Maybe = Elm.Maybe.make(_elm),
+	   $Native$Regex = Elm.Native.Regex.make(_elm);
+	   var split = $Native$Regex.split;
+	   var replace = $Native$Regex.replace;
+	   var find = $Native$Regex.find;
+	   var AtMost = function (a) {
+	      return {ctor: "AtMost"
+	             ,_0: a};
+	   };
+	   var All = {ctor: "All"};
+	   var Match = F4(function (a,
+	   b,
+	   c,
+	   d) {
+	      return {_: {}
+	             ,index: c
+	             ,match: a
+	             ,number: d
+	             ,submatches: b};
+	   });
+	   var contains = $Native$Regex.contains;
+	   var caseInsensitive = $Native$Regex.caseInsensitive;
+	   var regex = $Native$Regex.regex;
+	   var escape = $Native$Regex.escape;
+	   var Regex = {ctor: "Regex"};
+	   _elm.Regex.values = {_op: _op
+	                       ,regex: regex
+	                       ,escape: escape
+	                       ,caseInsensitive: caseInsensitive
+	                       ,contains: contains
+	                       ,find: find
+	                       ,replace: replace
+	                       ,split: split
+	                       ,Match: Match
+	                       ,All: All
+	                       ,AtMost: AtMost};
+	   return _elm.Regex.values;
+	};
 	Elm.Result = Elm.Result || {};
 	Elm.Result.make = function (_elm) {
 	   "use strict";
@@ -13442,7 +13644,24 @@
 	   $Html = Elm.Html.make(_elm),
 	   $Html$Attributes = Elm.Html.Attributes.make(_elm),
 	   $List = Elm.List.make(_elm),
+	   $Regex = Elm.Regex.make(_elm),
 	   $Result = Elm.Result.make(_elm);
+	   var buildUrl = F2(function (rootURL,
+	   build) {
+	      return A2($Basics._op["++"],
+	      rootURL,
+	      A2($Basics._op["++"],
+	      "/",
+	      A4($Regex.replace,
+	      $Regex.All,
+	      $Regex.regex("/stop"),
+	      function (_v0) {
+	         return function () {
+	            return "";
+	         }();
+	      },
+	      build.cancelUrl)));
+	   });
 	   var commitLink = function (commit) {
 	      return A2($Html.a,
 	      _L.fromArray([$Html$Attributes.href(commit.commitUrl)]),
@@ -13454,10 +13673,27 @@
 	      commit.shortSha,
 	      ")"))))]));
 	   };
-	   var buildView = function (build) {
-	      return $Html.text($Basics.toString(build.number));
-	   };
-	   var buildStepView = function (buildStep) {
+	   var buildView = F2(function (rootURL,
+	   build) {
+	      return A2($Html.a,
+	      _L.fromArray([$Html$Attributes.$class(build.result)
+	                   ,$Html$Attributes.href(A2(buildUrl,
+	                   rootURL,
+	                   build))]),
+	      _L.fromArray([$Html.text(A2($Basics._op["++"],
+	      "#",
+	      A2($Basics._op["++"],
+	      $Basics.toString(build.number),
+	      A2($Basics._op["++"],
+	      " - ",
+	      A2($Basics._op["++"],
+	      build.result,
+	      A2($Basics._op["++"],
+	      " - ",
+	      build.displayTime))))))]));
+	   });
+	   var buildStepView = F2(function (rootURL,
+	   buildStep) {
 	      return A2($Html.div,
 	      _L.fromArray([$Html$Attributes.$class("fieldset")]),
 	      _L.fromArray([A2($Html.h1,
@@ -13468,10 +13704,13 @@
 	                   ,A2($Html.div,
 	                   _L.fromArray([]),
 	                   $List.map(function (build) {
-	                      return buildView(build);
+	                      return A2(buildView,
+	                      rootURL,
+	                      build);
 	                   })(buildStep.builds))]));
-	   };
-	   var pipeLineShaView = function (pipelineSha) {
+	   });
+	   var pipeLineShaView = F2(function (rootURL,
+	   pipelineSha) {
 	      return A2($Html.div,
 	      _L.fromArray([$Html$Attributes.$class("fieldset")]),
 	      _L.fromArray([A2($Html.h1,
@@ -13483,11 +13722,14 @@
 	                   _L.fromArray([]),
 	                   A2($List.map,
 	                   function (buildStep) {
-	                      return buildStepView(buildStep);
+	                      return A2(buildStepView,
+	                      rootURL,
+	                      buildStep);
 	                   },
 	                   pipelineSha.steps))]));
-	   };
-	   var view = function (pipeLineResult) {
+	   });
+	   var view = F2(function (rootURL,
+	   pipeLineResult) {
 	      return function () {
 	         switch (pipeLineResult.ctor)
 	         {case "Err": return A2($Html.h1,
@@ -13497,13 +13739,15 @@
 	              _L.fromArray([]),
 	              A2($List.map,
 	              function (pipeLineSha) {
-	                 return pipeLineShaView(pipeLineSha);
+	                 return A2(pipeLineShaView,
+	                 rootURL,
+	                 pipeLineSha);
 	              },
 	              pipeLineResult._0));}
 	         _U.badCase($moduleName,
-	         "between lines 5 and 8");
+	         "between lines 6 and 9");
 	      }();
-	   };
+	   });
 	   _elm.View.values = {_op: _op
 	                      ,view: view};
 	   return _elm.View.values;
@@ -13607,7 +13851,7 @@
 
 
 	// module
-	exports.push([module.id, ".fieldset {\n  border: 2px groove threedface;\n  border-top: none;\n  padding: 0.5em;\n  margin: 1em 2px;\n}\n.fieldset > h1 {\n  font: 1em normal;\n  margin: -1em -0.5em 0;\n}   \n.fieldset > h1 > span {\n  float: left;\n}\n.fieldset > h1:before {\n  border-top: 2px groove threedface;\n  content: ' ';\n  float: left;\n  margin: 0.5em 2px 0 -1px;\n  width: 0.75em;\n}\n.fieldset > h1:after {\n  border-top: 2px groove threedface;\n  content: ' ';\n  display: block;\n  height: 1.5em;\n  left: 2px;\n  margin: 0 1px 0 0;\n  overflow: hidden;\n  position: relative;\n  top: 0.5em;\n}\n", ""]);
+	exports.push([module.id, ".fieldset {\n  border: 2px groove threedface;\n  border-top: none;\n  padding: 0.5em;\n  margin: 1em 2px;\n}\n.fieldset > h1 {\n  font: 1em normal;\n  margin: -1em -0.5em 0;\n}   \n.fieldset > h1 > span {\n  float: left;\n}\n.fieldset > h1:before {\n  border-top: 2px groove threedface;\n  content: ' ';\n  float: left;\n  margin: 0.5em 2px 0 -1px;\n  width: 0.75em;\n}\n.fieldset > h1:after {\n  border-top: 2px groove threedface;\n  content: ' ';\n  display: block;\n  height: 1.5em;\n  left: 2px;\n  margin: 0 1px 0 0;\n  overflow: hidden;\n  position: relative;\n  top: 0.5em;\n}\n.FAILURE{\n  color: red;\n}\n\n.SUCCESS{\n  color: green;\n}\n.IN_PROGRESS{\n  color: yellow;\n}\n.ABORTED{\n  color: grey;\n}\n", ""]);
 
 	// exports
 
